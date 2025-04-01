@@ -8,7 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: #0a192f;
             touch-action: none;
         }
@@ -279,7 +279,7 @@
             <h2>Lunch Break Over!</h2>
             <p id="final-score">Energy Gained: 0</p>
             <p id="final-message">Back to coding! (Or grab a real lunch)</p>
-            <button id="restart-button">Play Again</button>
+            <button id="restart-button" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">Play Again</button>
         </div>
         
         <div id="desk"></div>
@@ -317,10 +317,10 @@
             </svg>
         </div>
         
-        <div id="about-icon">i</div>
-        <div id="about-text">Game by whadar - <a href="https://twitter.com/whadar" target="_blank">Twitter</a></div>
+        <div id="about-icon" style="cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;" onclick="toggleAbout()">i</div>
+        <div id="about-text">Game by whadar - <a href="https://twitter.com/whadar" target="_blank" rel="noopener noreferrer">Twitter</a></div>
         
-        <a target="_blank" href="https://jam.pieter.com" style="font-family: 'system-ui', sans-serif; position: fixed; bottom: -1px; right: -1px; padding: 7px; font-size: 14px; font-weight: bold; background: #fff; color: #000; text-decoration: none; z-index: 10; border-top-left-radius: 12px; z-index: 10000; border: 1px solid #fff;">🕹️ Vibe Jam 2025</a>
+        <a target="_blank" href="https://jam.pieter.com" rel="noopener noreferrer" style="font-family: 'system-ui', sans-serif; position: fixed; bottom: -1px; right: -1px; padding: 7px; font-size: 14px; font-weight: bold; background: #fff; color: #000; text-decoration: none; border-top-left-radius: 12px; z-index: 10000; border: 1px solid #fff; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">🕹️ Vibe Jam 2025</a>
     </div>
 
     <script>
@@ -347,6 +347,16 @@
         const pointsPopup = document.createElement('div');
         pointsPopup.className = 'points-popup';
         gameArea.appendChild(pointsPopup);
+        
+        // Function to toggle about text
+        function toggleAbout() {
+            const aboutText = document.getElementById('about-text');
+            if (aboutText.style.display === 'block') {
+                aboutText.style.display = 'none';
+            } else {
+                aboutText.style.display = 'block';
+            }
+        }
         
         // Food types with their properties
         const foodTypes = [
@@ -383,18 +393,6 @@
         
         // Initialize the game
         window.onload = function() {
-            // Set up about icon
-            const aboutIcon = document.getElementById('about-icon');
-            const aboutText = document.getElementById('about-text');
-            
-            aboutIcon.addEventListener('click', function() {
-                if (aboutText.style.display === 'block') {
-                    aboutText.style.display = 'none';
-                } else {
-                    aboutText.style.display = 'block';
-                }
-            });
-            
             // Start game with a slight delay to ensure everything is loaded
             setTimeout(startGame, 100);
             
@@ -413,6 +411,14 @@
                 restartGame();
                 return false; // Prevent default action
             };
+            
+            // Make sure links are clickable on mobile
+            const allLinks = document.querySelectorAll('a');
+            allLinks.forEach(link => {
+                link.addEventListener('touchend', (e) => {
+                    e.stopPropagation();
+                });
+            });
         };
         
         function startGame() {
