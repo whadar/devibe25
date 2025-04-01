@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Lunch Rush: Feed The Silly Dev</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #0a192f;
+            touch-action: none;
+        }
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #dev {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 160px;
+            z-index: 10;
+        }
+        .food {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            z-index: 5;
+        }
+        #desk {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: #603813;
+            z-index: 1;
+        }
+        #header {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 20;
+        }
+        #title {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+        #subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        #stats {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 20;
+        }
+        .stat-container {
+            background-color: rgba(20, 28, 47, 0.8);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: white;
+            text-align: center;
+            min-width: 100px;
+            border: 2px solid #64ffda;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #64ffda;
+        }
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(10, 25, 47, 0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 30;
+            width: 80%;
+            max-width: 340px;
+            border: 3px solid #64ffda;
+        }
+        #game-over h2 {
+            font-size: 32px;
+            margin: 0 0 20px 0;
+            color: #64ffda;
+        }
+        #final-score {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        #restart-button {
+            background-color: #64ffda;
+            border: none;
+            color: #0a192f;
+            padding: 12px 25px;
+            text-align: center;
+            font-size: 16px;
+            margin: 20px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 600;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        #restart-button:hover {
+            background-color: #4cffcb;
+            transform: scale(1.1);
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            background-color: rgba(10, 25, 47, 0.7);
+            padding: 8px 15px;
+            border-radius: 5px;
+            z-index: 20;
+            width: 80%;
+            max-width: 400px;
+        }
+        .timer-bar-container {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 500px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 20;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #64ffda, #4cffcb);
+            transition: width 1s linear;
+        }
+        .text-bubble {
+            position: absolute;
+            background-color: white;
+            border-radius: 15px;
+            padding: 10px;
+            max-width: 200px;
+            font-size: 14px;
+            z-index: 15;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #333;
+            opacity: 0;
+            transform: translateY(0);
+            transition: opacity 0.3s, transform 2s;
+        }
+        .text-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+        .text-bubble.show {
+            opacity: 1;
+            transform: translateY(-20px);
+        }
+        .points-popup {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+            z-index: 15;
+            opacity: 0;
+            transform: translateY(0);
+            transition: opacity 0.3s, transform 1s;
+        }
+        .points-popup.show {
+            opacity: 1;
+            transform: translateY(-30px);
+        }
+        #about-icon {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: #64ffda;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 1000;
+        }
+        #about-text {
+            position: fixed;
+            bottom: 50px;
+            left: 10px;
+            background-color: rgba(10, 25, 47, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            max-width: 250px;
+            display: none;
+            z-index: 1000;
+            border: 1px solid #64ffda;
+        }
+        #about-text a {
+            color: #64ffda;
+            text-decoration: none;
+        }
+        #about-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-area">
+        <div id="header">
+            <h1 id="title">🍕 Tech Lunch Rush 💻</h1>
+            <div id="subtitle">Feed the silly developer before deadline!</div>
+        </div>
+        
+        <div id="stats">
+            <div class="stat-container">
+                <div class="stat-label">Energy</div>
+                <div id="score" class="stat-value">0</div>
+            </div>
+            <div class="stat-container">
+                <div class="stat-label">Time</div>
+                <div id="timer" class="stat-value">60s</div>
+            </div>
+        </div>
+        
+        <div class="timer-bar-container">
+            <div id="timer-bar" class="timer-bar"></div>
+        </div>
+        
+        <div id="instructions">Drag or use arrow keys to move the hungry dev</div>
+        
+        <div id="game-over">
+            <h2>Lunch Break Over!</h2>
+            <p id="final-score">Energy Gained: 0</p>
+            <p id="final-message">Back to coding! (Or grab a real lunch)</p>
+            <button id="restart-button">Play Again</button>
+        </div>
+        
+        <div id="desk"></div>
+        <div id="dev">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+                <!-- Body -->
+                <rect x="50" y="80" width="60" height="70" rx="10" fill="#4834d4" />
+                
+                <!-- Head -->
+                <circle cx="80" cy="60" r="30" fill="#ffccaa" />
+                
+                <!-- Hair - messy style -->
+                <path d="M60 40 Q70 20 80 30 Q90 15 100 40" stroke="#663300" stroke-width="10" fill="none" />
+                <path d="M55 45 Q65 30 75 38" stroke="#663300" stroke-width="8" fill="none" />
+                <path d="M85 38 Q95 25 105 45" stroke="#663300" stroke-width="8" fill="none" />
+                
+                <!-- Glasses - big nerdy style -->
+                <rect x="55" y="55" width="50" height="15" rx="5" fill="none" stroke="#333" stroke-width="3" />
+                <rect x="55" y="55" width="20" height="15" rx="5" fill="none" stroke="#333" stroke-width="3" />
+                <rect x="85" y="55" width="20" height="15" rx="5" fill="none" stroke="#333" stroke-width="3" />
+                
+                <!-- Eyes (behind glasses) -->
+                <circle cx="65" cy="62" r="5" fill="#333" />
+                <circle cx="95" cy="62" r="5" fill="#333" />
+                
+                <!-- Mouth -->
+                <path id="mouth" d="M65 80 Q80 90 95 80" stroke="#333" stroke-width="3" fill="none" />
+                
+                <!-- T-Shirt Text -->
+                <text x="80" y="110" font-family="monospace" font-size="10" text-anchor="middle" fill="white">!==!</text>
+                
+                <!-- Arms -->
+                <rect x="30" y="85" width="20" height="10" rx="5" fill="#ffccaa" />
+                <rect x="110" y="85" width="20" height="10" rx="5" fill="#ffccaa" />
+            </svg>
+        </div>
+        
+        <div id="about-icon">i</div>
+        <div id="about-text">Game by whadar - <a href="https://twitter.com/whadar" target="_blank">Twitter</a></div>
+        
+        <a target="_blank" href="https://jam.pieter.com" style="font-family: 'system-ui', sans-serif; position: fixed; bottom: -1px; right: -1px; padding: 7px; font-size: 14px; font-weight: bold; background: #fff; color: #000; text-decoration: none; z-index: 10; border-top-left-radius: 12px; z-index: 10000; border: 1px solid #fff;">🕹️ Vibe Jam 2025</a>
+    </div>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = true;
+        let foods = [];
+        let devLeft = window.innerWidth / 2 - 80; // pixels from left
+        let devWidth = 160;
+        let devMovingLeft = false;
+        let devMovingRight = false;
+        let touchStartX = 0;
+        let gameStarted = false;
+        let bubbleTimeout = null;
+        let pointsTimeout = null;
+        const gameArea = document.getElementById('game-area');
+        const dev = document.getElementById('dev');
+        const mouth = document.getElementById('mouth');
+        const bubble = document.createElement('div');
+        bubble.className = 'text-bubble';
+        gameArea.appendChild(bubble);
+        
+        const pointsPopup = document.createElement('div');
+        pointsPopup.className = 'points-popup';
+        gameArea.appendChild(pointsPopup);
+        
+        // Food types with their properties
+        const foodTypes = [
+            { name: 'pizza', emoji: '🍕', points: 5, description: 'Code Fuel' },
+            { name: 'burger', emoji: '🍔', points: 7, description: 'Debug Boost' },
+            { name: 'coffee', emoji: '☕', points: 10, description: 'Caffeine Rush' },
+            { name: 'donut', emoji: '🍩', points: 3, description: 'Sugar Spike' },
+            { name: 'energy', emoji: '🥤', points: 15, description: 'All-nighter Power' }
+        ];
+        
+        // Funny tech quotes when eating
+        const funnyQuotes = [
+            "It's not a bug, it's a feature!",
+            "Have you tried turning it off and on again?",
+            "Hello World! Of Food!",
+            "Byte me!",
+            "Debugging requires fuel!",
+            "Coffee is just bean soup!",
+            "My code is compiling...",
+            "I'm not lazy, I'm in energy saving mode",
+            "There's no place like 127.0.0.1",
+            "I need more RAM... and food",
+            "TODO: Eat more",
+            "Keyboard not found. Press F1 to continue eating",
+            "404: Hunger not found",
+            "That's what she .said()",
+            "I'm on a seafood diet. I see food and I eat it!",
+            "import food as energy",
+            "while(hungry){eat();}",
+            "git commit -m 'lunch break'",
+            "Hunger overflow error",
+            "sudo make me a sandwich"
+        ];
+        
+        // Initialize the game
+        window.onload = function() {
+            // Set up about icon
+            const aboutIcon = document.getElementById('about-icon');
+            const aboutText = document.getElementById('about-text');
+            
+            aboutIcon.addEventListener('click', function() {
+                if (aboutText.style.display === 'block') {
+                    aboutText.style.display = 'none';
+                } else {
+                    aboutText.style.display = 'block';
+                }
+            });
+            
+            // Start game with a slight delay to ensure everything is loaded
+            setTimeout(startGame, 100);
+            
+            // Controls
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            // Mobile controls
+            dev.addEventListener('touchstart', handleTouchStart);
+            document.addEventListener('touchmove', handleTouchMove);
+            document.addEventListener('touchend', handleTouchEnd);
+            
+            // Set up restart button with direct click handler, not event listener
+            const restartBtn = document.getElementById('restart-button');
+            restartBtn.onclick = function() {
+                restartGame();
+                return false; // Prevent default action
+            };
+        };
+        
+        function startGame() {
+            if (gameStarted) return;
+            gameStarted = true;
+            
+            // Set dev initial position
+            updateDevPosition();
+            
+            // Create initial food
+            setTimeout(createFood, 500);
+            setTimeout(createFood, 1000);
+            setTimeout(createFood, 1500);
+            
+            // Start timer
+            startTimer();
+            
+            // Start animation loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function updateDevPosition() {
+            // Clamp position to prevent going off-screen
+            devLeft = Math.max(0, Math.min(window.innerWidth - devWidth, devLeft));
+            dev.style.left = devLeft + 'px';
+            dev.style.transform = 'translateX(0)'; // Override default transform
+        }
+        
+        function createFood() {
+            if (!gameActive) return;
+            
+            // Pick random food type
+            const foodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+            
+            // Create food element
+            const food = document.createElement('div');
+            food.className = 'food';
+            food.innerHTML = `<div style="font-size: 40px; text-align: center;">${foodType.emoji}</div>`;
+            
+            // Set random position
+            const foodLeft = Math.random() * (window.innerWidth - 60);
+            food.style.left = foodLeft + 'px';
+            food.style.top = '-60px';
+            
+            // Add to game area
+            gameArea.appendChild(food);
+            
+            // Add to foods array
+            foods.push({
+                element: food,
+                left: foodLeft,
+                top: -60,
+                velocity: Math.random() * 2 + 1, // pixels per frame
+                points: foodType.points,
+                description: foodType.description
+            });
+        }
+        
+        function handleKeyDown(e) {
+            if (e.key === 'ArrowLeft') {
+                devMovingLeft = true;
+            } else if (e.key === 'ArrowRight') {
+                devMovingRight = true;
+            }
+        }
+        
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowLeft') {
+                devMovingLeft = false;
+            } else if (e.key === 'ArrowRight') {
+                devMovingRight = false;
+            }
+        }
+        
+        function handleTouchStart(e) {
+            if (!gameActive) return;
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+        }
+        
+        function handleTouchMove(e) {
+            if (!gameActive || !touchStartX) return;
+            e.preventDefault();
+            
+            const touchX = e.touches[0].clientX;
+            devLeft += (touchX - touchStartX);
+            updateDevPosition();
+            touchStartX = touchX;
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            touchStartX = 0;
+        }
+        
+        function startTimer() {
+            // Update timer bar
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            
+            const timerInterval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                
+                timeLeft--;
+                document.getElementById('timer').textContent = `${timeLeft}s`;
+                
+                // Update timer bar
+                timerBar.style.width = `${(timeLeft / 60) * 100}%`;
+                
+                if (timeLeft <= 10) {
+                    // Add urgency effect when time is low
+                    timerBar.style.background = 'linear-gradient(90deg, #FF6B6B, #FF5252)';
+                }
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                    clearInterval(timerInterval);
+                }
+                
+                // Random food spawn
+                if (Math.random() < 0.1 && foods.length < 10) {
+                    createFood();
+                }
+            }, 1000);
+        }
+        
+        function gameLoop() {
+            if (gameActive) {
+                // Move dev based on keyboard input
+                if (devMovingLeft) {
+                    devLeft -= 10;
+                    updateDevPosition();
+                }
+                if (devMovingRight) {
+                    devLeft += 10;
+                    updateDevPosition();
+                }
+                
+                // Move foods down
+                for (let i = foods.length - 1; i >= 0; i--) {
+                    const food = foods[i];
+                    food.top += food.velocity;
+                    food.element.style.top = food.top + 'px';
+                    
+                    // Check for collision
+                    if (checkCollision(food)) {
+                        // Eat food
+                        eatFood(food, i);
+                    }
+                    
+                    // Remove food if it falls off screen
+                    if (food.top > window.innerHeight) {
+                        gameArea.removeChild(food.element);
+                        foods.splice(i, 1);
+                    }
+                }
+                
+                // Animate mouth
+                const mouthY = 80 + Math.sin(Date.now() / 300) * 2;
+                mouth.setAttribute('d', `M65 ${mouthY} Q80 ${mouthY + 10} 95 ${mouthY}`);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function checkCollision(food) {
+            const devRect = dev.getBoundingClientRect();
+            const foodRect = food.element.getBoundingClientRect();
+            
+            return !(
+                devRect.right < foodRect.left || 
+                devRect.left > foodRect.right || 
+                devRect.bottom - 70 < foodRect.top || 
+                devRect.top + 70 > foodRect.bottom
+            );
+        }
+        
+        function eatFood(food, index) {
+            // Add points
+            score += food.points;
+            document.getElementById('score').textContent = score;
+            
+            // Show points popup
+            const foodRect = food.element.getBoundingClientRect();
+            showPointsPopup(foodRect.left + foodRect.width / 2, foodRect.top, food.points, food.description);
+            
+            // Show funny quote
+            showTextBubble();
+            
+            // Animate mouth - wide open when eating
+            mouth.setAttribute('d', 'M65 80 Q80 100 95 80');
+            setTimeout(() => {
+                if (gameActive) {
+                    mouth.setAttribute('d', 'M65 80 Q80 90 95 80');
+                }
+            }, 300);
+            
+            // Remove food safely
+            try {
+                if (food.element && food.element.parentNode === gameArea) {
+                    gameArea.removeChild(food.element);
+                }
+            } catch (e) {
+                console.log("Food already removed:", e);
+            }
+            
+            foods.splice(index, 1);
+            
+            // Create new food with delay
+            setTimeout(createFood, Math.random() * 500 + 100);
+        }
+        
+        function showPointsPopup(x, y, points, description) {
+            // Clear any existing animation
+            if (pointsTimeout) {
+                clearTimeout(pointsTimeout);
+                pointsPopup.classList.remove('show');
+            }
+            
+            // Set text and position
+            pointsPopup.textContent = `+${points} ${description}`;
+            pointsPopup.style.left = x + 'px';
+            pointsPopup.style.top = y + 'px';
+            
+            // Set color based on points
+            if (points >= 10) {
+                pointsPopup.style.color = '#64ffda'; // Teal for high points
+            } else if (points >= 5) {
+                pointsPopup.style.color = '#FFA500'; // Orange for medium points
+            } else {
+                pointsPopup.style.color = '#FF69B4'; // Pink for low points
+            }
+            
+            // Show and animate
+            setTimeout(() => {
+                pointsPopup.classList.add('show');
+                
+                // Hide after animation
+                pointsTimeout = setTimeout(() => {
+                    pointsPopup.classList.remove('show');
+                }, 1000);
+            }, 10);
+        }
+        
+        function showTextBubble() {
+            // Get random quote
+            const quote = funnyQuotes[Math.floor(Math.random() * funnyQuotes.length)];
+            
+            // Clear any existing animation
+            if (bubbleTimeout) {
+                clearTimeout(bubbleTimeout);
+                bubble.classList.remove('show');
+            }
+            
+            // Set text and position
+            bubble.textContent = quote;
+            const devRect = dev.getBoundingClientRect();
+            bubble.style.left = (devRect.left + devRect.width / 2 - 100) + 'px';
+            bubble.style.top = (devRect.top - 60) + 'px';
+            
+            // Show and animate
+            setTimeout(() => {
+                bubble.classList.add('show');
+                
+                // Hide after animation
+                bubbleTimeout = setTimeout(() => {
+                    bubble.classList.remove('show');
+                }, 2000);
+            }, 10);
+        }
+        
+        function endGame() {
+            gameActive = false;
+            document.getElementById('final-score').textContent = `Energy Gained: ${score}`;
+            document.getElementById('game-over').style.display = 'block';
+            
+            // Clear all animations
+            if (bubbleTimeout) {
+                clearTimeout(bubbleTimeout);
+            }
+            if (pointsTimeout) {
+                clearTimeout(pointsTimeout);
+            }
+        }
+        
+        function restartGame() {
+            // Reset game variables
+            score = 0;
+            timeLeft = 60;
+            gameActive = true;
+            gameStarted = false; // Reset game started flag to force a fresh start
+            
+            // Clear all foods safely
+            for (let i = foods.length - 1; i >= 0; i--) {
+                try {
+                    if (foods[i].element && foods[i].element.parentNode === gameArea) {
+                        gameArea.removeChild(foods[i].element);
+                    }
+                } catch (e) {
+                    console.log("Error removing food:", e);
+                }
+            }
+            foods = [];
+            
+            // Reset UI
+            document.getElementById('score').textContent = '0';
+            document.getElementById('timer').textContent = '60s';
+            document.getElementById('game-over').style.display = 'none';
+            
+            // Reset timer bar
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            timerBar.style.background = 'linear-gradient(90deg, #64ffda, #4cffcb)';
+            
+            // Hide bubbles
+            bubble.classList.remove('show');
+            pointsPopup.classList.remove('show');
+            
+            // Start game again with a small delay to ensure clean restart
+            setTimeout(startGame, 100);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            // Ensure dev stays on screen
+            updateDevPosition();
+        });
+    </script>
+</body>
+</html>
