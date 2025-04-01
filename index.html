@@ -279,7 +279,8 @@
             <h2>Lunch Break Over!</h2>
             <p id="final-score">Energy Gained: 0</p>
             <p id="final-message">Back to coding! (Or grab a real lunch)</p>
-            <button id="restart-button" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">Play Again</button>
+            <button id="restart-button" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; background-color: #64ffda; border: none; color: #0a192f; padding: 12px 25px; text-align: center; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px; font-weight: 600;">Play Again</button>
+            <button id="share-button" style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; background-color: #64ffda; border: none; color: #0a192f; padding: 12px 25px; text-align: center; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px; font-weight: 600;">Share Score</button>
         </div>
         
         <div id="desk"></div>
@@ -364,7 +365,8 @@
             { name: 'burger', emoji: '🍔', points: 7, description: 'Debug Boost' },
             { name: 'coffee', emoji: '☕', points: 10, description: 'Caffeine Rush' },
             { name: 'donut', emoji: '🍩', points: 3, description: 'Sugar Spike' },
-            { name: 'energy', emoji: '🥤', points: 15, description: 'All-nighter Power' }
+            { name: 'energy', emoji: '🥤', points: 15, description: 'All-nighter Power' },
+            { name: 'mouse', emoji: '🖱️', points: -8, description: 'Legacy Hardware' }
         ];
         
         // Funny tech quotes when eating
@@ -389,6 +391,18 @@
             "git commit -m 'lunch break'",
             "Hunger overflow error",
             "sudo make me a sandwich"
+        ];
+        
+        // Negative quotes for when eating the mouse
+        const negativeQuotes = [
+            "This mouse tastes like PS/2 port!",
+            "Ugh! Hardware doesn't belong in my stomach!",
+            "I prefer wireless meals!",
+            "Tastes like legacy code!",
+            "My digestive system can't parse this!",
+            "Not compatible with my food drivers!",
+            "Should have upgraded to touchscreen!",
+            "Error 418: I'm a developer, not a mouse eater!"
         ];
         
         // Initialize the game
@@ -451,7 +465,17 @@
             if (!gameActive) return;
             
             // Pick random food type
-            const foodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+            const randomValue = Math.random();
+            let foodType;
+            
+            // Give the mouse (negative points) a 15% chance of appearing
+            if (randomValue < 0.15) {
+                foodType = foodTypes[5]; // Mouse
+            } else {
+                // Pick from the regular food items (indexes 0-4)
+                const index = Math.floor(Math.random() * 5);
+                foodType = foodTypes[index];
+            }
             
             // Create food element
             const food = document.createElement('div');
@@ -463,6 +487,13 @@
             food.style.left = foodLeft + 'px';
             food.style.top = '-60px';
             
+            // Calculate velocity - increases based on elapsed time
+            let velocity = Math.random() * 2 + 1;
+            // Speed up as time progresses (up to 2x faster at the end)
+            const timeElapsed = 60 - timeLeft;
+            const speedMultiplier = 1 + (timeElapsed / 60);
+            velocity *= speedMultiplier;
+            
             // Add to game area
             gameArea.appendChild(food);
             
@@ -471,7 +502,7 @@
                 element: food,
                 left: foodLeft,
                 top: -60,
-                velocity: Math.random() * 2 + 1, // pixels per frame
+                velocity: velocity,
                 points: foodType.points,
                 description: foodType.description
             });
@@ -608,11 +639,19 @@
             const foodRect = food.element.getBoundingClientRect();
             showPointsPopup(foodRect.left + foodRect.width / 2, foodRect.top, food.points, food.description);
             
-            // Show funny quote
-            showTextBubble();
+            // Show funny quote - different for negative points
+            const isNegative = food.points < 0;
+            showTextBubble(isNegative);
             
-            // Animate mouth - wide open when eating
-            mouth.setAttribute('d', 'M65 80 Q80 100 95 80');
+            // Animate mouth - different for negative points
+            if (isNegative) {
+                // Frown for mouse
+                mouth.setAttribute('d', 'M65 85 Q80 75 95 85');
+            } else {
+                // Wide open for food
+                mouth.setAttribute('d', 'M65 80 Q80 100 95 80');
+            }
+            
             setTimeout(() => {
                 if (gameActive) {
                     mouth.setAttribute('d', 'M65 80 Q80 90 95 80');
@@ -642,12 +681,14 @@
             }
             
             // Set text and position
-            pointsPopup.textContent = `+${points} ${description}`;
+            pointsPopup.textContent = (points >= 0) ? `+${points} ${description}` : `${points} ${description}`;
             pointsPopup.style.left = x + 'px';
             pointsPopup.style.top = y + 'px';
             
             // Set color based on points
-            if (points >= 10) {
+            if (points < 0) {
+                pointsPopup.style.color = '#FF3333'; // Red for negative points
+            } else if (points >= 10) {
                 pointsPopup.style.color = '#64ffda'; // Teal for high points
             } else if (points >= 5) {
                 pointsPopup.style.color = '#FFA500'; // Orange for medium points
@@ -666,9 +707,10 @@
             }, 10);
         }
         
-        function showTextBubble() {
+        function showTextBubble(isNegative = false) {
             // Get random quote
-            const quote = funnyQuotes[Math.floor(Math.random() * funnyQuotes.length)];
+            const quotes = isNegative ? negativeQuotes : funnyQuotes;
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
             
             // Clear any existing animation
             if (bubbleTimeout) {
@@ -681,6 +723,14 @@
             const devRect = dev.getBoundingClientRect();
             bubble.style.left = (devRect.left + devRect.width / 2 - 100) + 'px';
             bubble.style.top = (devRect.top - 60) + 'px';
+            
+            if (isNegative) {
+                bubble.style.backgroundColor = '#ffcccc';
+                bubble.style.borderColor = '#ff3333';
+            } else {
+                bubble.style.backgroundColor = 'white';
+                bubble.style.borderColor = '#333';
+            }
             
             // Show and animate
             setTimeout(() => {
@@ -697,6 +747,14 @@
             gameActive = false;
             document.getElementById('final-score').textContent = `Energy Gained: ${score}`;
             document.getElementById('game-over').style.display = 'block';
+            
+            // Setup share button with direct onclick handler
+            document.getElementById('share-button').onclick = function() {
+                const tweetText = encodeURIComponent(`I just scored ${score} energy points in Tech Lunch Rush! Can you beat my score? Play now at https://devibe.whadar.com #TechLunchRush`);
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+                window.open(twitterUrl, '_blank');
+                return false; // Prevent default button behavior
+            };
             
             // Clear all animations
             if (bubbleTimeout) {
